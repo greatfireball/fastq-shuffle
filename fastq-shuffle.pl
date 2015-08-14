@@ -66,7 +66,7 @@ my ($count_reads, $count_mates) = (0, 0);
 
 my $position_information = "";
 
-while (1)
+while (!( eof($reads_fh) && eof($mates_fh)) )
 {
     # Read first sequence block
     # store start position
