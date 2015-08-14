@@ -22,6 +22,27 @@ if (defined $mates)
     }
 }
 
+# check if we have a single end set
+if (defined $single || (defined $reads && ! defined $mates))
+{
+    $reads = $single # we want to use reads for the input file
+    $single = 1;
+}
+
+open(READS, "<", $reads) || die "Unable to open read file '$reads': $!\n";
+
+unless ($single)
+{
+    open(MATES, "<", $mates) || die "Unable to open second read file '$mates': $!\n";
+}
+
+close(READS) || die "Unable to close read file '$reads': $!\n";
+
+unless ($single)
+{
+    close(MATES) || die "Unable to close second read file '$mates': $!\n";
+}
+
 =pod
 
 =head1 Parameters
