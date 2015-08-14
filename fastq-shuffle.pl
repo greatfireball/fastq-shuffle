@@ -15,6 +15,10 @@ my $ret = GetOptions(
     'single=s'  => \(my $single),
 );
 
+# here a the block information how to store the data
+my $format_block = "LLLL";
+my $len_block = length(pack($format_block, 0, 0, 0, 0));
+
 # check if mates are set
 if (defined $mates)
 {
@@ -115,7 +119,7 @@ while (!( eof($reads_fh) && eof($mates_fh)) )
     }
 
     # store the information about the block
-    $position_information .= pack("LLLL", $r_start, $r_len, $m_start, $m_len);
+    $position_information .= pack($format_block, $r_start, $r_len, $m_start, $m_len);
 }
 
 # set the progressbar
