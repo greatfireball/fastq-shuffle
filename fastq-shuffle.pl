@@ -55,6 +55,9 @@ if (defined $srand_init)
 print STDERR "Randomgenerator was initialized with $srand_init\n";
 
 my ($reads_fh, $mates_fh, $reads_out_fh, $mates_out_fh);
+
+my ($reads_file, $mates_file) = ("", "");
+
 my ($reads_size, $mates_size) = (0, 0);
 
 open($reads_fh, "<", $reads) || die "Unable to open read file '$reads': $!\n";
@@ -100,6 +103,8 @@ while (!( eof($reads_fh) && eof($mates_fh)) )
 
     $count_reads++;
 
+    $reads_file .= $r_header.$r_seq.$r_header2.$r_qual;
+
     my ($m_start, $m_len, $m_end) = (0, 0, 0);
     unless ($single || eof($mates_fh))
     {
@@ -120,6 +125,8 @@ while (!( eof($reads_fh) && eof($mates_fh)) )
 	$m_len = $m_end - $m_start + 1;
 
 	$count_mates++;
+
+	$mates_file .= $m_header.$m_seq.$m_header2.$m_qual;
     }
 
 
@@ -134,6 +141,10 @@ while (!( eof($reads_fh) && eof($mates_fh)) )
 
 # set the progressbar
 $pb->update($reads_size+$mates_size);
+
+# reopen reads/mates from memory
+open($reads_fh, "<", \$reads_file) || die "$!\n";
+open($mates_fh, "<", \$mates_file) || die "$!\n";
 
 ## now we need to shuffle
 
