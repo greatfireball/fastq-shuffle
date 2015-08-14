@@ -125,6 +125,47 @@ while (!( eof($reads_fh) && eof($mates_fh)) )
 # set the progressbar
 $pb->update($reads_size+$mates_size);
 
+## now we need to shuffle
+
+printf STDERR "Positions of %d read and %d mate blocks was determined. Now I need to shuffle those blocks...\n", $count_reads, $count_mates;
+
+## initialize the progress bar again
+$pb = Term::ProgressBar->new({
+    name  => "Shuffling dataset",
+    count => $count_reads,
+    ETA   => 'linear',
+			     });
+my $next_update = 0;
+
+for (my $i=0; $i<$count_reads; $i++)
+{
+    # we want to start from upper border
+    my $index = $count_reads-$i;
+
+    # generate a index for a block to exchange those two blocks
+    my $swap_with = rand($index);
+
+    # the position of those blocks (0-based counted) is:
+    my $swap_with_start = ($swap_with-1)*$len_block;
+    my $index_start = ($index-1)*$len_block;
+
+    # get the strings
+    my $first = substr($position_information, $index_start, $len_block);
+    my $second = substr($position_information, $swap_with_start, $len_block);
+
+    # set the new string
+    substr($position_information, $index_start, $len_block, $second);
+    substr($position_information, $swap_with_start, $len_block, $first);
+
+    # update progressbar
+    if ($i > $next_update)
+    {
+	$next_update = $pb->update($i);
+    }
+}
+
+$pb->update($count_reads);
+
 close($reads_fh) || die "Unable to close read file '$reads': $!\n";
 
 unless ($single)
