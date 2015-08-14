@@ -211,6 +211,8 @@ for (my $i=0; $i<$count_reads; $i++)
     }
 }
 
+$next_update = $pb->update($count_reads);
+
 close($reads_fh) || die "Unable to close read file '$reads': $!\n";
 close($reads_out_fh) || die "Unable to close read file '$reads_out': $!\n";
 
