@@ -36,6 +36,14 @@ if (defined $single || (defined $reads && ! defined $mates))
     $single = 1;
 }
 
+my ($reads_out, $mates_out);
+
+$reads_out = $reads."_out";
+unless ($single)
+{
+    $mates_out = $mates."_out";
+}
+
 # initialze random generator
 if (defined $srand_init)
 {
@@ -46,15 +54,17 @@ if (defined $srand_init)
 
 print STDERR "Randomgenerator was initialized with $srand_init\n";
 
-my ($reads_fh, $mates_fh);
+my ($reads_fh, $mates_fh, $reads_out_fh, $mates_out_fh);
 my ($reads_size, $mates_size) = (0, 0);
 
 open($reads_fh, "<", $reads) || die "Unable to open read file '$reads': $!\n";
+open($reads_out_fh, ">", $reads_out) || die "Unable to open read file '$reads_out': $!\n";
 $reads_size = stat($reads)->size;
 
 unless ($single)
 {
     open($mates_fh, "<", $mates) || die "Unable to open second read file '$mates': $!\n";
+    open($mates_out_fh, ">", $mates_out) || die "Unable to open second read file '$mates_out': $!\n";
     $mates_size = stat($mates)->size;
 }
 
@@ -166,11 +176,48 @@ for (my $i=0; $i<$count_reads; $i++)
 
 $pb->update($count_reads);
 
+printf STDERR "Shuffling finished... Writing output files...\n";
+
+## initialize the progress bar again
+$pb = Term::ProgressBar->new({
+    name  => "Shuffling dataset",
+    count => $count_reads,
+    ETA   => 'linear',
+			     });
+$next_update = 0;
+
+for (my $i=0; $i<$count_reads; $i++)
+{
+
+    my ($r_start, $r_len, $m_start, $m_len) = unpack($format_block, substr($position_information, $i*$len_block, $len_block));
+
+    # seek to the position of the input data, read the dataset and write it to the outputfile
+    my $dataset = "";
+    seek($reads_fh, $r_start, 0) || die;
+    read $reads_fh, $dataset, $len_block;
+    print $reads_out_fh $dataset;
+    unless ($single)
+    {
+	$dataset = "";
+	seek($mates_fh, $m_start, 0) || die;
+	read $mates_fh, $dataset, $len_block;
+	print $mates_out_fh $dataset;
+    }
+
+    # update progressbar
+    if ($i > $next_update)
+    {
+	$next_update = $pb->update($i);
+    }
+}
+
 close($reads_fh) || die "Unable to close read file '$reads': $!\n";
+close($reads_out_fh) || die "Unable to close read file '$reads_out': $!\n";
 
 unless ($single)
 {
     close($mates_fh) || die "Unable to close second read file '$mates': $!\n";
+    close($mates_out_fh) || die "Unable to close second read file '$mates_out': $!\n";
 }
 
 =pod
