@@ -9,7 +9,7 @@ use Term::ProgressBar;
 use Term::ProgressBar::IO;
 
 my $ret = GetOptions(
-    'r|srand=d' => \(my $srand_init),
+    'r|srand=i' => \(my $srand_init),
     '1|reads=s' => \(my $reads),
     '2|mates=s' => \(my $mates),
     'single=s'  => \(my $single),
