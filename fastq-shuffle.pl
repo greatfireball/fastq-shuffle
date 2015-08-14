@@ -6,7 +6,7 @@ use warnings;
 use Getopt::Long;
 
 use Term::ProgressBar;
-use Term::ProgressBar::IO;
+use File::stat;
 
 my $ret = GetOptions(
     'r|srand=i' => \(my $srand_init),
@@ -43,16 +43,24 @@ if (defined $srand_init)
 print STDERR "Randomgenerator was initialized with $srand_init\n";
 
 my ($reads_fh, $mates_fh);
-my ($reads_pb, $mates_pb);
+my ($reads_size, $mates_size) = (0, 0);
 
 open($reads_fh, "<", $reads) || die "Unable to open read file '$reads': $!\n";
-$reads_pb = Term::ProgressBar::IO->new($reads_fh);
+$reads_size = stat($reads)->size;
 
 unless ($single)
 {
     open($mates_fh, "<", $mates) || die "Unable to open second read file '$mates': $!\n";
-    $mates_pb = Term::ProgressBar::IO->new($mates_fh);
+    $mates_size = stat($mates)->size;
 }
+
+my $pb = Term::ProgressBar->new({
+    name  => "Reading input positions",
+    count => $reads_size+$mates_size,
+    ETA   => 'linear',
+				});
+my $next_update = 0;
+
 
 my ($count_reads, $count_mates) = (0, 0);
 
@@ -77,10 +85,9 @@ while (1)
     my $r_len = $r_end - $r_start + 1;
 
     $count_reads++;
-    $reads_pb->update();
 
-    my ($m_start, $m_len) = (0, 0);
-    unless ($single)
+    my ($m_start, $m_len, $m_end) = (0, 0, 0);
+    unless ($single || eof($mates_fh))
     {
 	# Read first sequence block
 	# store start position
@@ -93,18 +100,26 @@ while (1)
 	my $m_qual = <$mates_fh>;
 
 	# store end position
-	my $m_end = tell($mates_fh)-1;
+	$m_end = tell($mates_fh)-1;
 
 	# calculate length
-	my $m_len = $m_end - $m_start + 1;
+	$m_len = $m_end - $m_start + 1;
 
 	$count_mates++;
-	$mates_pb->update();
+    }
+
+
+    if ($m_end+$r_end > $next_update)
+    {
+	$next_update = $pb->update($m_end+$r_end);
     }
 
     # store the information about the block
     $position_information .= pack("LLLL", $r_start, $r_len, $m_start, $m_len);
 }
+
+# set the progressbar
+$pb->update($reads_size+$mates_size);
 
 close($reads_fh) || die "Unable to close read file '$reads': $!\n";
 
