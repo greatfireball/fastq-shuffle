@@ -135,7 +135,7 @@ $pb = Term::ProgressBar->new({
     count => $count_reads,
     ETA   => 'linear',
 			     });
-my $next_update = 0;
+$next_update = 0;
 
 for (my $i=0; $i<$count_reads; $i++)
 {
