@@ -153,7 +153,7 @@ for (my $i=0; $i<$count_reads; $i++)
     my $index = $count_reads-$i;
 
     # generate a index for a block to exchange those two blocks
-    my $swap_with = rand($index);
+    my $swap_with = int(rand($index));
 
     # the position of those blocks (0-based counted) is:
     my $swap_with_start = ($swap_with-1)*$len_block;
