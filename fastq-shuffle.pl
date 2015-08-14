@@ -194,13 +194,13 @@ for (my $i=0; $i<$count_reads; $i++)
     # seek to the position of the input data, read the dataset and write it to the outputfile
     my $dataset = "";
     seek($reads_fh, $r_start, 0) || die;
-    read $reads_fh, $dataset, $len_block;
+    read $reads_fh, $dataset, $r_len;
     print $reads_out_fh $dataset;
     unless ($single)
     {
 	$dataset = "";
 	seek($mates_fh, $m_start, 0) || die;
-	read $mates_fh, $dataset, $len_block;
+	read $mates_fh, $dataset, $m_len;
 	print $mates_out_fh $dataset;
     }
 
