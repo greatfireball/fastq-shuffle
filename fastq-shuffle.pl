@@ -9,7 +9,7 @@ my $ret = GetOptions(
     'r|srand=d' => \(my $srand_init),
     '1|reads=s' => \(my $reads),
     '2|mates=s' => \(my $mates),
-    'single=s'  => \(my $singles),
+    'single=s'  => \(my $single),
 );
 
 # check if mates are set
@@ -25,9 +25,19 @@ if (defined $mates)
 # check if we have a single end set
 if (defined $single || (defined $reads && ! defined $mates))
 {
-    $reads = $single # we want to use reads for the input file
+    $reads = $single; # we want to use reads for the input file
     $single = 1;
 }
+
+# initialze random generator
+if (defined $srand_init)
+{
+    srand($srand_init);
+} else {
+    $srand_init = srand();
+}
+
+print STDERR "Randomgenerator was initialized with $srand_init\n";
 
 my ($reads_fh, $mates_fh);
 
